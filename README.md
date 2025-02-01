@@ -21,3 +21,12 @@ docker run -p 8080:8080 -e SWAGGER_JSON=/overview.yaml -v $(pwd)/overview.yaml:/
 3. Open your webbrowser to the URL [http://localhost:8080](http://localhost:8080)
 
 If you need specific files to help with the development but that shouldn't be push to the public repository, you can put then in a directory called `source/` at the root of the repo.
+
+## Generate Python Client
+From the root of the repo run the following command:
+```bash
+docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+    -i /local/overview.yaml \
+    -g python \
+    -o /local/clients/python-client
+```
