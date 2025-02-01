@@ -1,0 +1,115 @@
+openapi: 3.1.1
+info:
+  title: Overview Smart AI Cameras API
+  version: '0.0.1'
+  description: |-
+    This the API specifications for the OV20i Smart AI Camera produced by Overview Inc. It works with firmware versions above 2024.23.1.
+
+    Some useful links:
+    - [Overview Documentation](https://overview.ai/support)
+  contact:
+    email: lucas.vandroux@viun.tech
+  license:
+    name: MIT License
+    url: 'https://github.com/viun-tech/overview-api/blob/main/LICENSE'
+
+tags:
+  - name: recipe
+    description: Operations about recipe
+paths:
+
+   /edge/recipe/activate:
+    post:
+      tags:
+        - recipe
+      summary: Activate a recipe
+      description: Activate a specific recipe for execution. Only one recipe switch can happen at a time, and only one recipe can be activated at a time.
+      operationId: activateRecipeById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeId'
+      responses:
+        '200':
+          description: Recipe successfully activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    example: ""
+                  success:
+                    type: boolean
+                    example: true
+
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Additional details about the results of the action performed.
+                    example: ""
+                  success:
+                    type: boolean
+                    description: Whether the action peformed was successful.
+                    example: false
+                  'result':
+                    type: dict
+                    example: {}
+        '408':
+          description: Recipe switch request timed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    example: 'Recipe switch request timed out. Try again.'
+                  success:
+                    type: boolean
+                    example: false
+        '429':
+          description: A recipe switch is currently in progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'A recipe switch is currently in progress.'
+        '500':
+          description: Recipe switch failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    example: 'Recipe switch request failed.'
+                  success:
+                    type: boolean
+                    example: false
+
+components:
+  schemas:   
+    RecipeId:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int16
+          minimum: 1
+          maximum: 65535
+          description: PLC ID of the recipe.
+          example: 42
