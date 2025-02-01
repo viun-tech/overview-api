@@ -28,5 +28,6 @@ From the root of the repo run the following command:
 docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
     -i /local/overview.yaml \
     -g python \
-    -o /local/clients/python-client
+    -o /local/clients/python/overview-client \
+    --additional-properties=packageName=overview_client 
 ```
