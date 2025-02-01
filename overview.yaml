@@ -1,4 +1,7 @@
 openapi: 3.1.1
+servers:
+  - url: http://192.168.1.101
+    description: Local development device
 info:
   title: Overview Smart AI Cameras API
   version: '0.0.1'
@@ -16,9 +19,10 @@ info:
 tags:
   - name: recipe
     description: Operations about recipe
+  - name: capture
+    description: Operations about capture
 paths:
-
-   /edge/recipe/activate:
+  /edge/recipe/activate:
     post:
       tags:
         - recipe
@@ -100,6 +104,46 @@ paths:
                   success:
                     type: boolean
                     example: false
+  /postgrest/captures:
+    get:
+      tags:
+        - capture
+      summary: Get 1 or more captures according to specific parameters
+      description: Get captures according to specific parameters. Keep the default parameters to get the last capture. Only support classification recipe.
+      operationId: getCaptures
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of captures to return
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: order
+          in: query
+          description: Order of returned captures
+          required: false
+          schema:
+            type: string
+            enum: ['captured_at.asc', 'captured_at.desc']
+            default: 'captured_at.desc'
+        - name: select
+          in: query
+          description: Fields to include in the response
+          required: false
+          schema:
+            type: string
+            default: 'id,captured_at,source_recipe_id,path,height,width,size,classification_result(created_at,confidence,block_classification_classes(label_name,block_roi_inspection_type_params(name)),roi_result(block_roi_region_params(name,bbox,angle)))'
+      responses:
+        '200':
+          description: Successfully retrieved captures. Only support classification recipe.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Capture'
 
 components:
   schemas:   
@@ -113,3 +157,85 @@ components:
           maximum: 65535
           description: PLC ID of the recipe.
           example: 42
+    Capture:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the capture
+          example: 9207
+        captured_at:
+          type: string
+          format: date-time
+          description: Timestamp when the capture was taken
+          example: "2024-10-28T10:44:43.048129+00:00"
+        source_recipe_id:
+          type: integer
+          description: ID of the recipe used for this capture
+          example: 42
+        path:
+          type: string
+          description: File path of the captured image
+          example: "library_captures/1730112283020.jpg"
+        height:
+          type: integer
+          description: Height of the captured image in pixels
+          example: 1080
+        width:
+          type: integer
+          description: Width of the captured image in pixels
+          example: 1408
+        size:
+          type: integer
+          description: Size of the captured image file in bytes
+          example: 733320
+        classification_result:
+          type: array
+          description: List of classification results for each ROI
+          items:
+            type: object
+            properties:
+              created_at:
+                type: string
+                format: date-time
+                description: Timestamp when the classification was performed
+                example: "2025-01-14T20:30:13.38355+00:00"
+              confidence:
+                type: number
+                format: float
+                description: Confidence score of the classification result
+                example: 0.8258894918836092
+              block_classification_classes:
+                type: object
+                properties:
+                  label_name:
+                    type: string
+                    description: Classification label assigned to the ROI
+                    example: "Fail"
+                  block_roi_inspection_type_params:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the inspection type
+                        example: "Covers"
+              roi_result:
+                type: object
+                properties:
+                  block_roi_region_params:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the ROI region
+                        example: "Cover"
+                      bbox:
+                        type: array
+                        description: Bounding box coordinates [x, y, width, height]
+                        items:
+                          type: number
+                        example: [628.81, 251.83, 200, 200]
+                      angle:
+                        type: number
+                        description: Rotation angle of the ROI in degrees
+                        example: 0
