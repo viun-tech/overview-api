@@ -48,3 +48,12 @@ twine upload dist/*
 # You will be prompt to enter your API token
 ```
 
+## Generate C# Client
+From the root of the repo run the following command:
+```bash
+docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+    -i /local/overview.yaml \
+    -g csharp \
+    -o /local/clients/csharp/overview-client \
+    --additional-properties=packageName=overview_client,packageVersion=0.0.1 
+```
