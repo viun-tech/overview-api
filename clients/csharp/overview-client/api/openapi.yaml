@@ -1,0 +1,280 @@
+openapi: 3.1.1
+info:
+  contact:
+    email: lucas.vandroux@viun.tech
+  description: |-
+    This the API specifications for the OV20i Smart AI Camera produced by Overview Inc. It works with firmware versions above 2024.23.1.
+
+    Some useful links:
+    - [Overview Documentation](https://overview.ai/support)
+  license:
+    name: MIT License
+    url: https://github.com/viun-tech/overview-api/blob/main/LICENSE
+  title: Overview Smart AI Cameras API
+  version: 0.0.1
+servers:
+- description: Local development device
+  url: http://192.168.0.100
+tags:
+- description: Operations about recipe
+  name: recipe
+- description: Operations about capture
+  name: capture
+paths:
+  /edge/recipe/activate:
+    post:
+      description: "Activate a specific recipe for execution. Only one recipe switch\
+        \ can happen at a time, and only one recipe can be activated at a time."
+      operationId: activateRecipeById
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeId'
+        required: true
+      responses:
+        "200":
+          description: Recipe successfully activated
+        "400":
+          description: Invalid request body
+        "408":
+          description: Recipe switch request timed out
+        "429":
+          description: A recipe switch is currently in progress
+        "500":
+          description: Recipe switch failed
+      summary: Activate a recipe
+      tags:
+      - recipe
+  /postgrest/captures:
+    get:
+      description: Get captures according to specific parameters. Keep the default
+        parameters to get the last capture. Only support classification recipe.
+      operationId: getCaptures
+      parameters:
+      - description: Maximum number of captures to return
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Order of returned captures
+        explode: true
+        in: query
+        name: order
+        required: false
+        schema:
+          default: captured_at.desc
+          enum:
+          - captured_at.asc
+          - captured_at.desc
+          type: string
+        style: form
+      - description: Fields to include in the response
+        explode: true
+        in: query
+        name: select
+        required: false
+        schema:
+          default: "id,captured_at,source_recipe_id,path,height,width,size,classification_result(created_at,confidence,block_classification_classes(label_name,block_roi_inspection_type_params(name)),roi_result(block_roi_region_params(name,bbox,angle)))"
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Capture'
+                type: array
+          description: Successfully retrieved captures. Only support classification
+            recipe.
+      summary: Get 1 or more captures according to specific parameters
+      tags:
+      - capture
+components:
+  schemas:
+    RecipeId:
+      example:
+        id: 42
+      properties:
+        id:
+          description: "ID of the recipe available (Not the PLC ID, [more info](https://docs.overview.ai/docs/recipe-change-using-http))"
+          example: 42
+          format: int16
+          maximum: 65535
+          minimum: 1
+          type: integer
+    Capture:
+      example:
+        path: library_captures/1730112283020.jpg
+        size: 733320
+        classification_result:
+        - confidence: 0.8258894918836092
+          created_at: 2025-01-14T20:30:13.38355+00:00
+          roi_result:
+            block_roi_region_params:
+              bbox:
+              - 628.81
+              - 251.83
+              - 200
+              - 200
+              name: Cover
+              angle: 0
+          block_classification_classes:
+            block_roi_inspection_type_params:
+              name: Covers
+            label_name: Fail
+        - confidence: 0.8258894918836092
+          created_at: 2025-01-14T20:30:13.38355+00:00
+          roi_result:
+            block_roi_region_params:
+              bbox:
+              - 628.81
+              - 251.83
+              - 200
+              - 200
+              name: Cover
+              angle: 0
+          block_classification_classes:
+            block_roi_inspection_type_params:
+              name: Covers
+            label_name: Fail
+        source_recipe_id: 42
+        width: 1408
+        captured_at: 2024-10-28T10:44:43.048129+00:00
+        id: 9207
+        height: 1080
+      properties:
+        id:
+          description: Unique identifier of the capture
+          example: 9207
+          type: integer
+        captured_at:
+          description: Timestamp when the capture was taken
+          example: 2024-10-28T10:44:43.048129+00:00
+          format: date-time
+          type: string
+        source_recipe_id:
+          description: ID of the recipe used for this capture
+          example: 42
+          type: integer
+        path:
+          description: File path of the captured image
+          example: library_captures/1730112283020.jpg
+          type: string
+        height:
+          description: Height of the captured image in pixels
+          example: 1080
+          type: integer
+        width:
+          description: Width of the captured image in pixels
+          example: 1408
+          type: integer
+        size:
+          description: Size of the captured image file in bytes
+          example: 733320
+          type: integer
+        classification_result:
+          description: List of classification results for each ROI
+          items:
+            $ref: '#/components/schemas/Capture_classification_result_inner'
+          type: array
+    Capture_classification_result_inner_block_classification_classes_block_roi_inspection_type_params:
+      example:
+        name: Covers
+      properties:
+        name:
+          description: Name of the inspection type
+          example: Covers
+          type: string
+    Capture_classification_result_inner_block_classification_classes:
+      example:
+        block_roi_inspection_type_params:
+          name: Covers
+        label_name: Fail
+      properties:
+        label_name:
+          description: Classification label assigned to the ROI
+          example: Fail
+          type: string
+        block_roi_inspection_type_params:
+          $ref: '#/components/schemas/Capture_classification_result_inner_block_classification_classes_block_roi_inspection_type_params'
+    Capture_classification_result_inner_roi_result_block_roi_region_params:
+      example:
+        bbox:
+        - 628.81
+        - 251.83
+        - 200
+        - 200
+        name: Cover
+        angle: 0
+      properties:
+        name:
+          description: Name of the ROI region
+          example: Cover
+          type: string
+        bbox:
+          description: "Bounding box coordinates [x, y, width, height]"
+          example:
+          - 628.81
+          - 251.83
+          - 200
+          - 200
+          items:
+            type: number
+          type: array
+        angle:
+          description: Rotation angle of the ROI in degrees
+          example: 0
+          type: number
+    Capture_classification_result_inner_roi_result:
+      example:
+        block_roi_region_params:
+          bbox:
+          - 628.81
+          - 251.83
+          - 200
+          - 200
+          name: Cover
+          angle: 0
+      properties:
+        block_roi_region_params:
+          $ref: '#/components/schemas/Capture_classification_result_inner_roi_result_block_roi_region_params'
+    Capture_classification_result_inner:
+      example:
+        confidence: 0.8258894918836092
+        created_at: 2025-01-14T20:30:13.38355+00:00
+        roi_result:
+          block_roi_region_params:
+            bbox:
+            - 628.81
+            - 251.83
+            - 200
+            - 200
+            name: Cover
+            angle: 0
+        block_classification_classes:
+          block_roi_inspection_type_params:
+            name: Covers
+          label_name: Fail
+      properties:
+        created_at:
+          description: Timestamp when the classification was performed
+          example: 2025-01-14T20:30:13.38355+00:00
+          format: date-time
+          type: string
+        confidence:
+          description: Confidence score of the classification result
+          example: 0.8258894918836092
+          format: float
+          type: number
+        block_classification_classes:
+          $ref: '#/components/schemas/Capture_classification_result_inner_block_classification_classes'
+        roi_result:
+          $ref: '#/components/schemas/Capture_classification_result_inner_roi_result'
+
