@@ -29,5 +29,22 @@ docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
     -i /local/overview.yaml \
     -g python \
     -o /local/clients/python/overview-client \
-    --additional-properties=packageName=overview_client 
+    --additional-properties=packageName=overview_client,packageVersion=0.0.1 
 ```
+
+## Publish Python Client to PyPi
+```bash
+# (optional): if you don't have poetry and build installed
+python3.10 -m pip install --upgrade build poetry
+
+cd python/avis-client/generated
+
+# clean up
+rm -rf dist/
+
+# build
+poetry build
+twine upload dist/*
+# You will be prompt to enter your API token
+```
+
