@@ -1,6 +1,6 @@
 openapi: 3.1.1
 servers:
-  - url: http://192.168.1.101
+  - url: http://192.168.0.100
     description: Local development device
 info:
   title: Overview Smart AI Cameras API
@@ -38,72 +38,14 @@ paths:
       responses:
         '200':
           description: Recipe successfully activated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  details:
-                    type: string
-                    example: ""
-                  success:
-                    type: boolean
-                    example: true
-
         '400':
           description: Invalid request body
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  details:
-                    type: string
-                    description: Additional details about the results of the action performed.
-                    example: ""
-                  success:
-                    type: boolean
-                    description: Whether the action peformed was successful.
-                    example: false
-                  'result':
-                    type: object
-                    example: {}
         '408':
           description: Recipe switch request timed out
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  details:
-                    type: string
-                    example: 'Recipe switch request timed out. Try again.'
-                  success:
-                    type: boolean
-                    example: false
         '429':
           description: A recipe switch is currently in progress
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: 'A recipe switch is currently in progress.'
         '500':
           description: Recipe switch failed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  details:
-                    type: string
-                    example: 'Recipe switch request failed.'
-                  success:
-                    type: boolean
-                    example: false
   /postgrest/captures:
     get:
       tags:
@@ -155,7 +97,7 @@ components:
           format: int16
           minimum: 1
           maximum: 65535
-          description: PLC ID of the recipe.
+          description: ID of the recipe available (Not the PLC ID, [more info](https://docs.overview.ai/docs/recipe-change-using-http))
           example: 42
     Capture:
       type: object
