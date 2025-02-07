@@ -37,7 +37,7 @@ docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
 # (optional): if you don't have poetry and build installed
 python3.10 -m pip install --upgrade build poetry
 
-cd python/avis-client/generated
+cd clients/python/overview-client
 
 # clean up
 rm -rf dist/
@@ -56,4 +56,17 @@ docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
     -g csharp \
     -o /local/clients/csharp/overview-client \
     --additional-properties=packageName=overview_client,packageVersion=0.0.1 
+```
+
+## Publish C# Client to Nuget
+
+```bash
+cd clients/csharp/overview-client
+
+docker run --rm -v "$(pwd)":/workspace -w /workspace mcr.microsoft.com/dotnet/sdk:9.0 bash -c "\
+  dotnet clean && \
+  dotnet build -c Release && \
+  dotnet pack -c Release && \
+  dotnet nuget push bin/Release/OverviewClient.0.0.1.nupkg --api-key YOUR_NUGET_API_KEY --source https://api.nuget.org/v3/index.json"
+
 ```
